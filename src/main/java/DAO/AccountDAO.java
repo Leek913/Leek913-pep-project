@@ -23,7 +23,7 @@ public class AccountDAO implements BaseRepository<Account, Integer>{
             Statement Statement = Connection.createStatement();
             ResultSet Results = Statement.executeQuery(Sql);
             while(Results.next()){
-                Account Account = new Account(Results.getString("username"), Results.getString("password"));
+                Account Account = new Account(Results.getInt("account_id"), Results.getString("username"), Results.getString("password"));
                 Accounts.add(Account);
             }
         } catch (SQLException E) {
@@ -41,12 +41,11 @@ public class AccountDAO implements BaseRepository<Account, Integer>{
 
             PreparedStatement.setInt(1, Id);
             ResultSet Results = PreparedStatement.executeQuery();
-            while(Results.next()){
-                Account Account = new Account(Results.getString("username"), Results.getString("password"));
-                return Account;
+            if(Results.next()){
+                return new Account(Results.getInt("account_id"), Results.getString("username"), Results.getString("password"));
             }
         } catch (SQLException E) {
-            throw new DataException("Failed to find all accounts from the Database." , E);
+            throw new DataException("Failed to find account from the Database." , E);
         }
         return null;
     }
@@ -62,7 +61,7 @@ public class AccountDAO implements BaseRepository<Account, Integer>{
             PreparedStatement.setString(2, Value.getPassword());
             PreparedStatement.executeUpdate();
             ResultSet Results = PreparedStatement.getGeneratedKeys();
-            while(Results.next()){
+            if(Results.next()){
                 int GeneratedKey = Results.getInt(1);
                 return new Account(GeneratedKey, Value.getUsername(), Value.getPassword());
             }
@@ -111,5 +110,4 @@ public class AccountDAO implements BaseRepository<Account, Integer>{
             throw new DataException("Failed to Delete account." , E);
         }
     }
-    
 }
