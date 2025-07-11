@@ -88,21 +88,19 @@ public class MessageDAO implements BaseRepository<Message, String>{
     }
 
     @Override
-    public boolean Update(Message Value) throws DataException {
+    public Message Update(Message Value) throws DataException {
         Connection Connection = ConnectionUtil.getConnection();
         try {
-            String Sql = "UPDATE message SET posted_by = ?, message_text = ?, time_posted_epoch = ? WHERE message_id = ?";
+            String Sql = "UPDATE message SET message_text = ? WHERE message_id = ?";
             PreparedStatement PreparedStatement = Connection.prepareStatement(Sql);
 
-            PreparedStatement.setInt(1, Value.getPosted_by());
-            PreparedStatement.setString(2, Value.getMessage_text());
-            PreparedStatement.setLong(3, Value.getTime_posted_epoch());
-            PreparedStatement.setLong(4, Value.getMessage_id());
+            PreparedStatement.setString(1, Value.getMessage_text());
+            PreparedStatement.setInt(2, Value.getMessage_id());
             int Rows = PreparedStatement.executeUpdate();
             if(Rows == 0){
-                throw new DataException("Cannot find message with this Id.");
+                return null;             
             }
-            return Rows > 0;
+            return Value;
 
         } catch (SQLException E) {
             throw new DataException("Failed to update message." , E);
@@ -110,18 +108,29 @@ public class MessageDAO implements BaseRepository<Message, String>{
     }
 
     @Override
-    public boolean Delete(Message Value) throws DataException {
+    public Message Delete(Message Value) throws DataException {
         Connection Connection = ConnectionUtil.getConnection();
         try {
+            String RetrieveSql = "SELECT * FROM message WHERE message_id = ?";
+            PreparedStatement Statement = Connection.prepareStatement(RetrieveSql);
+            Statement.setInt(1, Value.getMessage_id());
+            ResultSet Results = Statement.executeQuery();
+
+            if(!Results.next()){
+                return null;
+            }
+            Message Message = new Message(
+                Results.getInt("message_id"),
+                Results.getInt("posted_by"),
+                Results.getString("message_text"),
+                Results.getLong("time_posted_epoch")
+            );
+
             String Sql = "DELETE FROM message WHERE message_id = ?";
             PreparedStatement PreparedStatement = Connection.prepareStatement(Sql);
             PreparedStatement.setInt(1, Value.getMessage_id());
-
-            int Rows = PreparedStatement.executeUpdate();
-            if(Rows == 0){
-                throw new DataException("Cannot find message with this Id.");
-            }
-            return Rows > 0;
+            PreparedStatement.executeUpdate();
+            return Message;
 
         } catch (SQLException E) {
             throw new DataException("Failed to Delete message." , E);

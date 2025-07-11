@@ -72,7 +72,7 @@ public class AccountDAO implements BaseRepository<Account, Integer>{
     }
 
     @Override
-    public boolean Update(Account Value) throws DataException {
+    public Account Update(Account Value) throws DataException {
         Connection Connection = ConnectionUtil.getConnection();
         try {
             String Sql = "UPDATE account SET username = ?, password = ? WHERE account_id = ?";
@@ -83,9 +83,10 @@ public class AccountDAO implements BaseRepository<Account, Integer>{
             PreparedStatement.setInt(3, Value.getAccount_id());
             int Rows = PreparedStatement.executeUpdate();
             if(Rows == 0){
-                throw new DataException("Cannot find account with this Id.");
+                return null;
             }
-            return Rows > 0;
+            
+            return Value;
 
         } catch (SQLException E) {
             throw new DataException("Failed to update account." , E);
@@ -93,21 +94,32 @@ public class AccountDAO implements BaseRepository<Account, Integer>{
     }
 
     @Override
-    public boolean Delete(Account Value) throws DataException {
+    public Account Delete(Account Value) throws DataException {
         Connection Connection = ConnectionUtil.getConnection();
         try {
+            String RetrieveSql = "SELECT * FROM account WHERE account_id = ?";
+            PreparedStatement Statement = Connection.prepareStatement(RetrieveSql);
+            Statement.setInt(1, Value.getAccount_id());
+            ResultSet Results = Statement.executeQuery();
+
+            if(!Results.next()){
+                return null;
+            }
+            Account Account = new Account(
+                Results.getInt("account_id"),
+                Results.getString("username"),
+                Results.getString("password")
+                
+            );
+
             String Sql = "DELETE FROM account WHERE account_id = ?";
             PreparedStatement PreparedStatement = Connection.prepareStatement(Sql);
             PreparedStatement.setInt(1, Value.getAccount_id());
-
-            int Rows = PreparedStatement.executeUpdate();
-            if(Rows == 0){
-                throw new DataException("Cannot find account with this Id.");
-            }
-            return Rows > 0;
+            PreparedStatement.executeUpdate();
+            return Account;
 
         } catch (SQLException E) {
-            throw new DataException("Failed to Delete account." , E);
+            throw new DataException("Failed to Delete message." , E);
         }
     }
 }

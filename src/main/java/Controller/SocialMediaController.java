@@ -79,13 +79,13 @@ public class SocialMediaController {
         }
     }
 
-    private void getAllMessagesHandler(Context Context) throws JsonProcessingException, DataException {
+    private void getAllMessagesHandler(Context Context) throws DataException {
         List<Message> Messages = MessageService.FindAll();
         Context.json(Messages);
     }
 
     private void getMessageByIdHandler(Context Context) throws DataException{
-        try{
+        try {
             int Id = Integer.parseInt(Objects.requireNonNull(Context.pathParam("message_id")));
             Message Message = MessageService.FindById(Id);
             if(Message != null){
@@ -98,16 +98,52 @@ public class SocialMediaController {
         }
     }
 
-    private void deleteMessageHandler(Context Context) {
+    private void deleteMessageHandler(Context Context) throws DataException {
+        try {
+            int Id = Integer.parseInt(Objects.requireNonNull(Context.pathParam("message_id")));
+            Message ShouldDelete =  new Message();
+            ShouldDelete.setMessage_id(Id);
 
+            Message Deleted = MessageService.Delete(ShouldDelete);
+            if(Deleted != null){
+                Context.json(Deleted);
+            } else {
+                Context.status(400);
+
+            }
+        } catch(NumberFormatException E){
+
+        }
     }
 
-    private void patchUpdateMessageHandler(Context Context) {
+    private void patchUpdateMessageHandler(Context Context) throws JsonProcessingException, DataException {
+        ObjectMapper Mapper = new ObjectMapper();
+        Message Message = Mapper.readValue(Context.body(), Message.class);
+        try {
+            int Id = Integer.parseInt(Objects.requireNonNull(Context.pathParam("message_id")));
+        } catch (NumberFormatException E) {
 
+        }
+        Message UpdatedMessage = MessageService.Update(Message);
+        if(UpdatedMessage != null){
+            Context.json(UpdatedMessage);
+        } else {
+            Context.status(400);
+        }
     }
 
-    private void getMessagesByUserHandler(Context Context) {
-        
+    private void getMessagesByUserHandler(Context Context) throws DataException {
+        try {
+            int Id = Integer.parseInt(Objects.requireNonNull(Context.pathParam("account_id")));
+            List<Message> Messages = MessageService.FindByUser(Id);
+            if(Messages != null){
+                Context.json(Messages);
+            } else {
+                Context.json("");
+            }
+        } catch(NumberFormatException E){
+            
+        }
     }
 
 

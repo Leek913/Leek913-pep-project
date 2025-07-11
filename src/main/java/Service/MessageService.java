@@ -26,15 +26,19 @@ public class MessageService {
         return DAO.FindById(Id);
     }
 
+    public List<Message> FindByUser(int Id) throws DataException{
+        return DAO.FindByUser(Id);
+    }
+
     public Message Add(Message Value) throws DataException{
         return DAO.Add(Value);
     }
 
-    public boolean Update(Message Value) throws DataException{
+    public Message Update(Message Value) throws DataException{
         return DAO.Update(Value);
     }
 
-    public boolean Delete(Message Value) throws DataException{
+    public Message Delete(Message Value) throws DataException{
         return DAO.Delete(Value);
     }
 }

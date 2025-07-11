@@ -30,11 +30,11 @@ public class AccountService {
         return DAO.Add(Value);
     }
 
-    public boolean Update(Account Value) throws DataException{
+    public Account Update(Account Value) throws DataException{
         return DAO.Update(Value);
     }
 
-    public boolean Delete(Account Value) throws DataException{
+    public Account Delete(Account Value) throws DataException{
         return DAO.Delete(Value);
     }
 }
