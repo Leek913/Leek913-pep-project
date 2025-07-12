@@ -7,7 +7,7 @@ import DAO.AccountDAO;
 import DAO.DataException;
 import Model.Account;
 
-public class AccountService {
+public class AccountService implements BaseService <Account, Integer> {
     private AccountDAO DAO;
 
     public AccountService(){
@@ -18,23 +18,43 @@ public class AccountService {
         this.DAO = DAO;
     }
 
-    public List<Account> FindAll() throws DataException{
+    @Override
+    public List<Account> FindAll() throws DataException {
         return DAO.FindAll();
     }
 
-    public Account FindById(int Id) throws DataException{
+    @Override
+    public Account FindById(int Id) throws DataException {
         return DAO.FindById(Id);
     }
 
-    public Account Add(Account Value) throws DataException{
+    public Account FindByUser(String Username) throws DataException {
+        return DAO.FindByUser(Username);
+    }
+
+    @Override
+    public Account Add(Account Value) throws DataException {
+        if(Value.getUsername().strip().isBlank() || Value.getPassword().strip().isBlank() || Value.getPassword().length() < 4 || DAO.FindByUser(Value.getUsername()) != null){
+            return null;
+        }
         return DAO.Add(Value);
     }
 
-    public Account Update(Account Value) throws DataException{
+    @Override
+    public Account Update(Account Value) throws DataException {
         return DAO.Update(Value);
     }
 
-    public Account Delete(Account Value) throws DataException{
+    @Override
+    public Account Delete(Account Value) throws DataException {
         return DAO.Delete(Value);
+    }
+
+    public Account Login(Account Login) throws DataException {
+        Account Account = DAO.FindByUser(Login.getUsername());
+        if(Account != null && Account.getPassword().equals(Login.getPassword())){
+            return Account;
+        }
+        return null;
     }
 }

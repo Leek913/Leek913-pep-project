@@ -39,7 +39,7 @@ public class SocialMediaController {
     public Javalin startAPI() {
         Javalin app = Javalin.create();
         app.post("/register", this::postNewAccountHandler);
-        app.get("/login", this::getAccountLoginHandler);
+        app.post("/login", this::postAccountLoginHandler);
         app.post("/messages", this::postNewMessageHandler);
         app.get("/messages", this::getAllMessagesHandler);
         app.get("/messages/{message_id}", this::getMessageByIdHandler);
@@ -53,38 +53,63 @@ public class SocialMediaController {
      * This is an example handler for an example endpoint.
      * @param context The Javalin Context object manages information about both the HTTP request and response.
      */
-    private void postNewAccountHandler(Context Context) throws JsonProcessingException, DataException {
+    private void postNewAccountHandler(Context Context) {
         ObjectMapper Mapper = new ObjectMapper();
-        Account Account = Mapper.readValue(Context.body(), Account.class);
-        Account AddedAccount = AccountService.Add(Account);
-        if(AddedAccount != null){
-            Context.json(Mapper.writeValueAsString(AddedAccount));
-        } else{
+        try {
+            Account Account = Mapper.readValue(Context.body(), Account.class);
+            Account AddedAccount = AccountService.Add(Account);
+            if(AddedAccount != null){
+                Context.json(Mapper.writeValueAsString(AddedAccount));
+            } else{
+                Context.status(400);
+            }
+        } catch(JsonProcessingException | DataException E){
             Context.status(400);
+        }
+        
+    }
+
+    private void postAccountLoginHandler(Context Context) {
+        ObjectMapper Mapper = new ObjectMapper();
+        try {
+            Account Account = Mapper.readValue(Context.body(), Account.class);
+            Account Login = AccountService.Login(Account);
+            if(Login != null){
+                Context.json(Mapper.writeValueAsString(Login));
+            } else{
+                Context.status(401);
+            }
+        } catch (JsonProcessingException | DataException E){
+            Context.status(401);
         }
     }
 
-    private void getAccountLoginHandler(Context Context){
-        ///Need to ask about this.
+    private void postNewMessageHandler(Context Context) {
+        ObjectMapper Mapper = new ObjectMapper();
+        try {
+            Message Message = Mapper.readValue(Context.body(), Message.class);
+            Message AddedMessage = MessageService.Add(Message);
+            if(AddedMessage != null){
+                Context.json(Mapper.writeValueAsString(AddedMessage));
+            } else{
+                Context.status(400);
+            }
+        } catch(JsonProcessingException | DataException E){
+            Context.status(400); 
+        }
+        
     }
 
-    private void postNewMessageHandler(Context Context) throws JsonProcessingException, DataException {
-        ObjectMapper Mapper = new ObjectMapper();
-        Message Message = Mapper.readValue(Context.body(), Message.class);
-        Message AddedMessage = MessageService.Add(Message);
-        if(AddedMessage != null){
-            Context.json(Mapper.writeValueAsString(AddedMessage));
-        } else{
-            Context.status(400);
+    private void getAllMessagesHandler(Context Context) {
+        try{
+            List<Message> Messages = MessageService.FindAll();
+            Context.json(Messages);
+        } catch (DataException E){
+
         }
     }
 
-    private void getAllMessagesHandler(Context Context) throws DataException {
-        List<Message> Messages = MessageService.FindAll();
-        Context.json(Messages);
-    }
-
-    private void getMessageByIdHandler(Context Context) throws DataException{
+    private void getMessageByIdHandler(Context Context) {
         try {
             int Id = Integer.parseInt(Objects.requireNonNull(Context.pathParam("message_id")));
             Message Message = MessageService.FindById(Id);
@@ -93,12 +118,12 @@ public class SocialMediaController {
             } else {
                 Context.json("");
             }
-        } catch(NumberFormatException E){
+        } catch(NumberFormatException | DataException E){
             
         }
     }
 
-    private void deleteMessageHandler(Context Context) throws DataException {
+    private void deleteMessageHandler(Context Context) {
         try {
             int Id = Integer.parseInt(Objects.requireNonNull(Context.pathParam("message_id")));
             Message ShouldDelete =  new Message();
@@ -107,32 +132,31 @@ public class SocialMediaController {
             Message Deleted = MessageService.Delete(ShouldDelete);
             if(Deleted != null){
                 Context.json(Deleted);
+            } 
+        } catch(NumberFormatException | DataException E){
+
+        }
+    }
+
+    private void patchUpdateMessageHandler(Context Context) {
+        ObjectMapper Mapper = new ObjectMapper();
+        try {
+            Message Message = Mapper.readValue(Context.body(), Message.class);
+            int Id = Integer.parseInt(Objects.requireNonNull(Context.pathParam("message_id")));
+            Message.setMessage_id(Id);
+            Message UpdatedMessage = MessageService.Update(Message);
+            if(UpdatedMessage != null){
+                Context.json(UpdatedMessage);
             } else {
                 Context.status(400);
-
             }
-        } catch(NumberFormatException E){
-
-        }
-    }
-
-    private void patchUpdateMessageHandler(Context Context) throws JsonProcessingException, DataException {
-        ObjectMapper Mapper = new ObjectMapper();
-        Message Message = Mapper.readValue(Context.body(), Message.class);
-        try {
-            int Id = Integer.parseInt(Objects.requireNonNull(Context.pathParam("message_id")));
-        } catch (NumberFormatException E) {
-
-        }
-        Message UpdatedMessage = MessageService.Update(Message);
-        if(UpdatedMessage != null){
-            Context.json(UpdatedMessage);
-        } else {
+        } catch (NumberFormatException | DataException | JsonProcessingException E) {
             Context.status(400);
         }
+        
     }
 
-    private void getMessagesByUserHandler(Context Context) throws DataException {
+    private void getMessagesByUserHandler(Context Context) {
         try {
             int Id = Integer.parseInt(Objects.requireNonNull(Context.pathParam("account_id")));
             List<Message> Messages = MessageService.FindByUser(Id);
@@ -141,11 +165,9 @@ public class SocialMediaController {
             } else {
                 Context.json("");
             }
-        } catch(NumberFormatException E){
+        } catch(NumberFormatException | DataException E){
             
         }
     }
-
-
 
 }

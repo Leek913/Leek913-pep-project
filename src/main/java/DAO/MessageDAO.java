@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.sql.*;
 
-public class MessageDAO implements BaseRepository<Message, String>{
+public class MessageDAO implements BaseRepository <Message, String> {
 
     @Override
     public List<Message> FindAll() throws DataException {
@@ -100,7 +100,20 @@ public class MessageDAO implements BaseRepository<Message, String>{
             if(Rows == 0){
                 return null;             
             }
-            return Value;
+
+            String RetrieveSql = "SELECT * FROM message WHERE message_id = ?";
+            PreparedStatement Statement = Connection.prepareStatement(RetrieveSql);
+            Statement.setInt(1, Value.getMessage_id());
+            ResultSet Results = Statement.executeQuery();
+            if(Results.next()){
+                return new Message(
+                    Results.getInt("message_id"),
+                    Results.getInt("posted_by"),
+                    Results.getString("message_text"),
+                    Results.getLong("time_posted_epoch")
+                );
+            }
+            return null;
 
         } catch (SQLException E) {
             throw new DataException("Failed to update message." , E);

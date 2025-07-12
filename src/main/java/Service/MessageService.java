@@ -7,7 +7,7 @@ import DAO.MessageDAO;
 import DAO.DataException;
 import Model.Message;
 
-public class MessageService {
+public class MessageService implements BaseService <Message, String> {
      private MessageDAO DAO;
 
     public MessageService(){
@@ -17,28 +17,39 @@ public class MessageService {
     public MessageService(MessageDAO DAO){
         this.DAO = DAO;
     }
-
-    public List<Message> FindAll() throws DataException{
+    
+    @Override
+    public List<Message> FindAll() throws DataException {
         return DAO.FindAll();
     }
 
-    public Message FindById(int Id) throws DataException{
+    @Override
+    public Message FindById(int Id) throws DataException {
         return DAO.FindById(Id);
     }
 
-    public List<Message> FindByUser(int Id) throws DataException{
+    public List<Message> FindByUser(int Id) throws DataException {
         return DAO.FindByUser(Id);
     }
 
-    public Message Add(Message Value) throws DataException{
+    @Override
+    public Message Add(Message Value) throws DataException {
+        if(Value.getMessage_text().isBlank() || Value.getMessage_text().length() > 255 || Value.getMessage_text() == null ) {
+            return null;
+        }
         return DAO.Add(Value);
     }
 
-    public Message Update(Message Value) throws DataException{
+    @Override
+    public Message Update(Message Value) throws DataException {
+        if(Value.getMessage_text().strip().isBlank() || Value.getMessage_text().length() > 255){
+            return null;
+        }
         return DAO.Update(Value);
     }
 
-    public Message Delete(Message Value) throws DataException{
+    @Override
+    public Message Delete(Message Value) throws DataException {
         return DAO.Delete(Value);
     }
 }

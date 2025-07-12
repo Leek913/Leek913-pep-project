@@ -12,7 +12,7 @@ import java.util.List;
 import Model.Account;
 import Util.ConnectionUtil;
 
-public class AccountDAO implements BaseRepository<Account, Integer>{
+public class AccountDAO implements BaseRepository <Account, Integer> {
 
     @Override
     public List<Account> FindAll() throws DataException {
@@ -40,6 +40,23 @@ public class AccountDAO implements BaseRepository<Account, Integer>{
             PreparedStatement PreparedStatement = Connection.prepareStatement(Sql);
 
             PreparedStatement.setInt(1, Id);
+            ResultSet Results = PreparedStatement.executeQuery();
+            if(Results.next()){
+                return new Account(Results.getInt("account_id"), Results.getString("username"), Results.getString("password"));
+            }
+        } catch (SQLException E) {
+            throw new DataException("Failed to find account from the Database." , E);
+        }
+        return null;
+    }
+
+    public Account FindByUser(String Username) throws DataException {
+        Connection Connection = ConnectionUtil.getConnection();
+        try {
+            String Sql = "SELECT * FROM account WHERE username = ?";
+            PreparedStatement PreparedStatement = Connection.prepareStatement(Sql);
+
+            PreparedStatement.setString(1, Username);
             ResultSet Results = PreparedStatement.executeQuery();
             if(Results.next()){
                 return new Account(Results.getInt("account_id"), Results.getString("username"), Results.getString("password"));
